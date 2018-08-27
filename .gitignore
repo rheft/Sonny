@@ -1,3 +1,5 @@
 .DS_Store
 Data_Sets/
 config.*
+*.csv
+*.tsv
