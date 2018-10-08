@@ -5,3 +5,4 @@ config.*
 *.tsv
 test.*
 *.ipynb
+*.ipynb_checkpoints/
