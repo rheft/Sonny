@@ -6,3 +6,5 @@ config.*
 test.*
 *.ipynb
 *.ipynb_checkpoints/
+.env
+*/__pycache__/
