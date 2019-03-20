@@ -1,47 +1,44 @@
-# Simple Linear Regression
-
-# Importing the libraries
+# Normal Imports
+import sys
+import os
+from dotenv import load_dotenv, find_dotenv
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+np.set_printoptions(suppress=True)
 
-# Importing the dataset
-dataset = pd.read_csv('Salary_Data.csv')
+# Import lib files
+envs = load_dotenv(find_dotenv())
+file = os.getenv("lib")
+sys.path.insert(0, file)
+from utils import LoadData
+from preprocessing import PreProcessing
+
+# Load the data
+dataset = LoadData("Salary_Data.csv").data
+
+# Split the dataset
 X = dataset.iloc[:, :-1].values
 y = dataset.iloc[:, 1].values
 
-# Splitting the dataset into the Training set and Test set
-from sklearn.cross_validation import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 1/3, random_state = 0)
+# Using the PreProcessing class from preprocessing
+processor = PreProcessing()
 
-# Feature Scaling
-"""from sklearn.preprocessing import StandardScaler
-sc_X = StandardScaler()
-X_train = sc_X.fit_transform(X_train)
-X_test = sc_X.transform(X_test)
-sc_y = StandardScaler()
-y_train = sc_y.fit_transform(y_train)"""
+# Split the data
+X_train, X_test, y_train, y_test = processor.split(X, y, test_size=0.2, random_state=0)
 
-# Fitting Simple Linear Regression to the Training set
-from sklearn.linear_model import LinearRegression
+# Fit Simple Linear Regression model
 regressor = LinearRegression()
 regressor.fit(X_train, y_train)
 
-# Predicting the Test set results
+# Predict the test set
 y_pred = regressor.predict(X_test)
 
-# Visualising the Training set results
-plt.scatter(X_train, y_train, color = 'red')
-plt.plot(X_train, regressor.predict(X_train), color = 'blue')
-plt.title('Salary vs Experience (Training set)')
-plt.xlabel('Years of Experience')
-plt.ylabel('Salary')
-plt.show()
-
-# Visualising the Test set results
-plt.scatter(X_test, y_test, color = 'red')
-plt.plot(X_train, regressor.predict(X_train), color = 'blue')
-plt.title('Salary vs Experience (Test set)')
-plt.xlabel('Years of Experience')
+# Visualizing the data
+plt.scatter(X_train, y_train, color='red')
+plt.plot(X_train, regressor.predict(X_train), color='blue')
+plt.title('Salary vs. Exp.')
+plt.xlabel('Years of Experiance')
 plt.ylabel('Salary')
 plt.show()

@@ -8,8 +8,6 @@ np.set_printoptions(suppress=True)
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
 
 # Import lib files
 envs = load_dotenv(find_dotenv())
@@ -25,19 +23,24 @@ dataset = LoadData("Position_Salaries.csv").data
 X = dataset.iloc[:, 1:2].values
 y = dataset.iloc[:, 2].values
 
-# Decision Tree Regression
-regressor = DecisionTreeRegressor(random_state = 0)
-regressor.fit(X, y)
+# Linear regression
+lin_reg = LinearRegression()
+lin_reg.fit(X, y)
+# Polynomial Regression
+poly_reg = PolynomialFeatures(degree=4)
+X_poly = poly_reg.fit_transform(X)
+multi_reg = LinearRegression()
+multi_reg.fit(X_poly, y)
 
 # Visualize to results
-x_grid = np.arange(min(X), max(X), 0.01)
-x_grid = x_grid.reshape((len(x_grid)), 1)
 plt.scatter(X, y, color='red')
-plt.plot(x_grid, regressor.predict(x_grid), color='blue')
+plt.plot(X, lin_reg.predict(X), color='blue')
+plt.plot(X, multi_reg.predict(poly_reg.fit_transform(X)), color='green')
 plt.title('Linear Regression vs. Polynomial Regression')
 plt.xlabel('Position Level')
 plt.ylabel('Salary')
 plt.show()
 
 # Predict new employee
-regressor.predict(np.array(6.5).reshape(1, -1))
+lin_reg.predict(np.array(6.5).reshape(1, -1))
+multi_reg.predict(poly_reg.fit_transform(np.array(6.5).reshape(1, -1)))

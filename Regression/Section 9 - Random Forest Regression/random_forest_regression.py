@@ -1,41 +1,55 @@
-# Random Forest Regression
-
-# Importing the libraries
+import sys
+import os
+from dotenv import load_dotenv, find_dotenv
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import PolynomialFeatures
 import numpy as np
-import matplotlib.pyplot as plt
+np.set_printoptions(suppress=True)
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 
-# Importing the dataset
-dataset = pd.read_csv('Position_Salaries.csv')
+# Import lib files
+envs = load_dotenv(find_dotenv())
+file = os.getenv("lib")
+sys.path.insert(0, file)
+from utils import LoadData
+from preprocessing import PreProcessing
+
+# Load data
+dataset = LoadData("Position_Salaries.csv").data
+
+# Split the dataset
 X = dataset.iloc[:, 1:2].values
 y = dataset.iloc[:, 2].values
 
-# Splitting the dataset into the Training set and Test set
-"""from sklearn.cross_validation import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)"""
+# Decision Tree Regression
+regressor_10 = RandomForestRegressor(n_estimators = 10, random_state=0)
+regressor_10.fit(X, y)
+regressor_50 = RandomForestRegressor(n_estimators = 50, random_state=0)
+regressor_50.fit(X, y)
+regressor_100 = RandomForestRegressor(n_estimators = 100, random_state=0)
+regressor_100.fit(X, y)
+lin_reg = LinearRegression()
+lin_reg.fit(X, y)
 
-# Feature Scaling
-"""from sklearn.preprocessing import StandardScaler
-sc_X = StandardScaler()
-X_train = sc_X.fit_transform(X_train)
-X_test = sc_X.transform(X_test)
-sc_y = StandardScaler()
-y_train = sc_y.fit_transform(y_train)"""
-
-# Fitting Random Forest Regression to the dataset
-from sklearn.ensemble import RandomForestRegressor
-regressor = RandomForestRegressor(n_estimators = 10, random_state = 0)
-regressor.fit(X, y)
-
-# Predicting a new result
-y_pred = regressor.predict(6.5)
-
-# Visualising the Random Forest Regression results (higher resolution)
-X_grid = np.arange(min(X), max(X), 0.01)
-X_grid = X_grid.reshape((len(X_grid), 1))
-plt.scatter(X, y, color = 'red')
-plt.plot(X_grid, regressor.predict(X_grid), color = 'blue')
-plt.title('Truth or Bluff (Random Forest Regression)')
-plt.xlabel('Position level')
+# Visualize to results
+x_grid = np.arange(min(X), max(X), 0.01)
+x_grid = x_grid.reshape((len(x_grid)), 1)
+plt.scatter(X, y, color='red')
+plt.plot(x_grid, regressor_10.predict(x_grid), color='blue')
+plt.plot(x_grid, regressor_50.predict(x_grid), color='green')
+plt.plot(x_grid, regressor_100.predict(x_grid), color='purple')
+plt.plot(x_grid, lin_reg.predict(x_grid), color='black')
+plt.title('Linear Regression vs. Polynomial Regression')
+plt.xlabel('Position Level')
 plt.ylabel('Salary')
 plt.show()
+
+# Predict new employee
+regressor_10.predict(np.array(6.5).reshape(1, -1))
+regressor_50.predict(np.array(6.5).reshape(1, -1))
+regressor_100.predict(np.array(6.5).reshape(1, -1))

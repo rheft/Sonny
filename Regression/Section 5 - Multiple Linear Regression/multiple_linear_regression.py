@@ -1,41 +1,74 @@
-# Multiple Linear Regression
-
-# Importing the libraries
+import sys
+import os
+from dotenv import load_dotenv, find_dotenv
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 import numpy as np
-import matplotlib.pyplot as plt
+np.set_printoptions(suppress=True)
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+import statsmodels.formula.api as sm
 
-# Importing the dataset
-dataset = pd.read_csv('50_Startups.csv')
+# Import lib files
+envs = load_dotenv(find_dotenv())
+file = os.getenv("lib")
+sys.path.insert(0, file)
+from utils import LoadData
+from preprocessing import PreProcessing
+
+# Load data
+dataset = LoadData("50_Startups.csv").data
+
+# Split the dataset
 X = dataset.iloc[:, :-1].values
 y = dataset.iloc[:, 4].values
 
-# Encoding categorical data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-labelencoder = LabelEncoder()
-X[:, 3] = labelencoder.fit_transform(X[:, 3])
-onehotencoder = OneHotEncoder(categorical_features = [3])
-X = onehotencoder.fit_transform(X).toarray()
+# Using the PreProcessing class from preprocessing
+processor = PreProcessing()
+# Encoding dummy variables
+X = processor.dummy_encoding(data=X, feature_position=3)
 
-# Avoiding the Dummy Variable Trap
+# Avoiding the dummy variable trap
 X = X[:, 1:]
 
-# Splitting the dataset into the Training set and Test set
-from sklearn.cross_validation import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+# Building the optimal model using Backward Elimination
+X = np.append(arr=np.ones((X.shape[0], 1)).astype(int), values=X, axis=1)
+X_opt = X[:, [0,1,2,3,4,5]]
+regressor_OLS = sm.OLS(endog=y, exog=X_opt).fit()
+regressor_OLS.summary()
 
-# Feature Scaling
-"""from sklearn.preprocessing import StandardScaler
-sc_X = StandardScaler()
-X_train = sc_X.fit_transform(X_train)
-X_test = sc_X.transform(X_test)
-sc_y = StandardScaler()
-y_train = sc_y.fit_transform(y_train)"""
+X_opt = X[:, [0,1,3,4,5]]
+regressor_OLS = sm.OLS(endog=y, exog=X_opt).fit()
+regressor_OLS.summary()
 
-# Fitting Multiple Linear Regression to the Training set
-from sklearn.linear_model import LinearRegression
+X_opt = X[:, [0,3,4,5]]
+regressor_OLS = sm.OLS(endog=y, exog=X_opt).fit()
+regressor_OLS.summary()
+
+X_opt = X[:, [0,3,5]]
+regressor_OLS = sm.OLS(endog=y, exog=X_opt).fit()
+regressor_OLS.summary()
+
+X_opt = X[:, [0, 3]]
+regressor_OLS = sm.OLS(endog=y, exog=X_opt).fit()
+regressor_OLS.summary()
+
+X = X[:, 3]
+
+# Split the data
+X_train, X_test, y_train, y_test = processor.split(X, y, test_size=0.2, random_state=0)
+
+# Fit multiple linear regression
 regressor = LinearRegression()
 regressor.fit(X_train, y_train)
-
-# Predicting the Test set results
 y_pred = regressor.predict(X_test)
+
+# Visualizing the data
+plt.scatter(X_test, y_test, color='red')
+plt.plot(X_train, regressor.predict(X_train), color='blue')
+plt.title('Salary vs. Exp.')
+plt.xlabel('Years of Experiance')
+plt.ylabel('Salary')
+plt.show()

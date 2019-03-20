@@ -36,6 +36,11 @@ class PreProcessing():
         hot_encoder = OneHotEncoder(categorical_features=features)
         return hot_encoder.fit_transform(data).toarray()
 
+    def dummy_encoding(self, data, feature_position):
+        data[:, feature_position] = self.encode(data[:, feature_position])
+        data = self.hot_encoding(data, [feature_position])
+        return data
+
     def scale(self, data):
         return self._scaler.transform(data)
 
