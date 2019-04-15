@@ -9,3 +9,4 @@ test.*
 .env
 */__pycache__/
 */*/__pycache__
+Deep_Learning/Section 40 - Convolutional Neural Networks (CNN)/Convolutional_Neural_Networks/cnn_datasets
