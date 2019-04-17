@@ -1,45 +1,54 @@
-# XGBoost
-
-# Install xgboost following the instructions on this link: http://xgboost.readthedocs.io/en/latest/build.html#
-
-# Importing the libraries
+# Imports
+import sys
+import os
+from dotenv import load_dotenv, find_dotenv
 import numpy as np
-import matplotlib.pyplot as plt
+np.set_printoptions(suppress=True)
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
-# Importing the dataset
-dataset = pd.read_csv('Churn_Modelling.csv')
+# Import Requierd libraries
+from xgboost import XGBClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import cross_val_score
+
+# Import lib files
+envs = load_dotenv(find_dotenv())
+file = os.getenv("lib")
+sys.path.insert(0, file)
+from utils import LoadData
+from preprocessing import PreProcessing
+from visuals import ClassifierVisual
+
+# Import data
+dataset = LoadData("Churn_Modelling.csv").data
 X = dataset.iloc[:, 3:13].values
 y = dataset.iloc[:, 13].values
 
-# Encoding categorical data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-labelencoder_X_1 = LabelEncoder()
-X[:, 1] = labelencoder_X_1.fit_transform(X[:, 1])
-labelencoder_X_2 = LabelEncoder()
-X[:, 2] = labelencoder_X_2.fit_transform(X[:, 2])
-onehotencoder = OneHotEncoder(categorical_features = [1])
-X = onehotencoder.fit_transform(X).toarray()
+# Lets do some preprocessing...
+processor = PreProcessing()
+# Encode the data (Country/Gender)
+X[:, 1] = processor.encode(X[:, 1])
+X[:, 2] = processor.encode(X[:, 2])
+X = processor.hot_encoding(data = X, features=[1])
 X = X[:, 1:]
 
-# Splitting the dataset into the Training set and Test set
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
+# Split the data into training+test
+X_train, X_test, y_train, y_test = processor.split(X, y, test_size=0.2)
 
-# Fitting XGBoost to the Training set
-from xgboost import XGBClassifier
+# Fitting XGboost
 classifier = XGBClassifier()
 classifier.fit(X_train, y_train)
 
-# Predicting the Test set results
+# Predicting the test results
 y_pred = classifier.predict(X_test)
 
-# Making the Confusion Matrix
-from sklearn.metrics import confusion_matrix
+# Making the confusion matrix
 cm = confusion_matrix(y_test, y_pred)
+cm
 
-# Applying k-Fold Cross Validation
-from sklearn.model_selection import cross_val_score
-accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
+# apply k-fold cross validation
+accuracies = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=10)
 accuracies.mean()
 accuracies.std()
